@@ -4,8 +4,8 @@
 % delta SIR dependence for all scenarios is calculated w.r.t. only maximum 
 % ARP beam shape control (maximum ARP beam shape control is plotted dotted)
 clear all; close all; clc;
-stdCoordsArr = [1, 3, 10];  % RMSE of UE coordinate estimates, m
-NellArr = 4:4:20;           % number of AA elements in one dimension
+stdCoordsArr = [1, 5, 10, 15];  % RMSE of UE coordinate estimates, m
+NellArr = 2:2:30;           % number of AA elements in one dimension
 % selection of antenna array type
 % 1 - planar or uniform rectangural antenna array (URA)
 % 2 - uniform linear antenna array (ULA)
@@ -18,12 +18,17 @@ antType = 1;
 %   3 - antenna radiation pattern (ARP) beam width (BW) control; adaptive 
 %     beam shape control is out of scope, because does not depend on RMSE
 antPattCntrlArr = [0, 1, 3, 3];
-win_typeArr = [0, 0, 0, 2];
 antPattCntrlCmt = ["Maximum ARP beam shape control", ...
                    "Maximum & null ARP beam shape control", ...
-                   "Gauss beam width control", ...
-                   "Rectangular  beam width control"];
+                   "Rectangular beam width control",...
+                   "Gaussian beam width control"];
 antTypeCmt = ["URA", "ULA", "UCA"];
+% select win_type for beam width control algorithm (antPattCntrl = 3)
+% 0 - Gauss window
+% 1 - raised cosine window
+% 2 - rectangular window
+win_typeArr = [0, 0, 2, 0];
+
 Zaa = [];
 for aa=1:length(antPattCntrlArr)
     Zst = [];
@@ -43,7 +48,7 @@ for aa=1:length(antPattCntrlArr)
                 case 2
                     sc = -0.2*stdCoords + 4.65;
             end
-            rng('default')
+            rng('default');
             fprintf('alg %i rmse=%5.1f, nel=%3i, scl=%4.2f\n',...
                 antPattCntrl, s, nel, sc);
             [X,Y,Z] = lab_beam_shape_fcn(antType,Nel,stdCoords,...
@@ -61,35 +66,41 @@ for aa=2:length(antPattCntrlArr)
     ZZmS = Zaa{aa};
     figure; hold on; grid on; axis tight;
     for kk=1:size(ZZmS,2)
-        plot(NellArr, ZZmS_1{kk}, '-');
+        plot(NellArr, ZZmS_1{kk}, '-', 'linewidth',2); hold on;
     end
-    set(gca,'ColorOrderIndex',1)
+    set(gca,'ColorOrderIndex',1);
     for kk=1:size(ZZmS,2)
-        plot(NellArr, ZZmS{kk}, '--');
+        plot(NellArr, ZZmS{kk}, '--', 'linewidth',2); hold on;
     end
-    xlabel('N'); ylabel('SIR_{avg}, dB');
+    xlabel('N (in one dimension for URA)'); ylabel('SIR_{avg}, dB');
     legFrst = ['RMSE = ',num2str(stdCoordsArr(1)), ' m'];
-    if antPattCntrlArr(aa) == 3
-        legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
-            'NumColumns',3, 'Location', 'southeast');
-    else
-        legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
-            'NumColumns',3);
-    end
-    title([antPattCntrlCmt(aa), antTypeCmt(antType)]);
+    legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
+        'NumColumns',3, 'Location', 'northwest');
+    title([antPattCntrlCmt(aa)]);
+    
+%     if antPattCntrlArr(aa) == 3
+%         legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
+%             'NumColumns',3, 'Location', 'southeast');
+%     else
+%         legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
+%             'NumColumns',3);
+%     end
     
     figure; hold on; grid on; axis tight;
     for kk=1:size(ZZmS,2)
-        plot(NellArr, ZZmS{kk}-ZZmS_1{kk}, '-');
+        plot(NellArr, ZZmS{kk}-ZZmS_1{kk}, '-.', 'linewidth',2); hold on;
     end
-    xlabel('N'); ylabel('\DeltaSIR_{avg}, dB');
+    xlabel('N (in one dimension for URA)'); ylabel('\DeltaSIR_{avg}, dB');
     legFrst = ['RMSE = ',num2str(stdCoordsArr(1)), ' m'];
-    if antPattCntrlArr(aa) == 3
-        legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
-            'NumColumns',3, 'Location', 'southeast');
-    else
-        legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
-            'NumColumns',3);
-    end
-    title([antPattCntrlCmt(aa), antTypeCmt(antType)]);
+    legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
+        'NumColumns',3, 'Location', 'northwest');
+%     if antPattCntrlArr(aa) == 3
+%         legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
+%             'NumColumns',3, 'Location', 'southeast');
+%     else
+%         legend([legFrst, strcat(string(stdCoordsArr(2:end)),' m')],...
+%             'NumColumns',3);
+%     end
+    %title([antPattCntrlCmt(aa), antTypeCmt(antType)]);
+    title([antPattCntrlCmt(aa)]);
 end

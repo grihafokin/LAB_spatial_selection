@@ -28,7 +28,7 @@ for s=stdCoordsArr
         f = 30e9;       % carrier frequency, Hz
         lamb = c/f;     % wavelength, m
         da = 0.5*c/f;   % distance between antenna array (AA) elements, m
-        stdCoordsArr = 10; % RMSE of UE coordinate estimates along, m
+        stdCoordsArr = s; % RMSE of UE coordinate estimates along, m
         N = 100;  % number of calculation points
         HgNB = 0; % gNB antenna array height
         Due = 50; % gNB to UE distance
@@ -121,34 +121,50 @@ for s=stdCoordsArr
         xPatt = cosd(alphPatt).*gNorm*(distSpaceT);
         yPatt = sind(alphPatt).*gNorm*(distSpaceT);
         xPattDef = cosd(alphPatt).*gDef*(distSpaceT);
-        yPattDef = sind(alphPatt).*gDef*(distSpaceT);
+        yPattDef = sind(alphPatt).*gDef*(distSpaceT);        
         % display ARP on the UE position probability map
         figure(figNumber); 
         subplot(1,2,subFigNumber); 
-        [X,Y] = meshgrid(-25:25, 0:Due+15);
+        prbA = [0.1, 0.5, 0.9];
+        [~, ~, ppR] = get_prob(ueCoord(2), ueCoord(1), stdCoords, prbA);
+        
+        ylimnin=-2*stdCoords; ylimnax=ppR(end) + ueCoord(1) + abs(ylimnin);
+        xlimmin=5*stdCoords;
+        [X,Y] = meshgrid(-xlimmin:xlimmin, ylimnin:ylimnax);
         p = mvnpdf([X(:) Y(:)], ueCoord([2,1]),...
             diag([stdCoords,stdCoords].^2));
-        p = reshape(p,size(X));
-        pcolor(X,Y,p); shading interp; hold on;
-        plot(xPatt, yPatt, 'Color', '#D95319', 'LineWidth', 1.3);
-        plot(xPattDef, yPattDef, 'Color', '#7E2F8E', 'LineWidth', 1.3);
-        c = colorbar; c.Label.String = 'p(x,y)';
-        axis tight;
+        p = reshape(p,size(X)); pcolor(X,Y,p); hold on; shading interp;
+        % c = colorbar; c.Label.String = 'p(x,y)'; 
+        angA = 0:360;
+        for i=1:length(prbA)
+            plot(ppR(i)*cosd(angA) + ueCoord(2), ...
+                ppR(i)*sind(angA) + ueCoord(1), 'k-');
+            text(ueCoord(2), ppR(i) + ueCoord(1), num2str(prbA(i)), ...
+           'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+        end
+        plot(xPatt,yPatt,'r--','LineWidth', 2.0); hold on;
+        plot(xPattDef, yPattDef, 'g-', 'LineWidth', 1.5);
         text(ueCoord(2), ueCoord(1), 'UE', 'HorizontalAlignment',...
             'center', 'VerticalAlignment', 'bottom')
-        grid on; axis equal; xlabel('x, m'); ylabel('y, m');
+        grid on; xlabel('x, m'); ylabel('y, m'); 
+        axis equal; axis([-xlimmin xlimmin ylimnin ylimnax-2]);
         if ww == 0 
-            legend('Gauss ARP','Location', 'southeast');
+            legend('Gaussian ARP','Location', 'southeast');
         elseif ww == 2
             legend('Rectangular ARP','Location', 'southeast');
         end
         subFigNumber = subFigNumber + 1;
         ueRxPwrPlt = [ueRxPwrPlt; ueRxPwr];
     end
-    sgtitle([sprintf('RMSE %i m', s), antTypeCmt(antType)]);
+    sgtitle([strcat(antTypeCmt(antType), sprintf('; RMSE = %i m',s))]);
     figNumber = figNumber + 1;
 end
-figure; plot(ueRxPwrPlt([1, 4, 2],:).')
+figure; 
+plot(ueRxPwrPlt(1,:).', '-'); hold on;
+plot(ueRxPwrPlt(2,:).', 'x-');
+plot(ueRxPwrPlt(4,:).', 'o-');
+% plot(ueRxPwrPlt([1, 4, 2],:).');
 grid on; xlabel('Calculation point number'); ylabel('P, dB');
-legend('Without beam control', 'Rectangular ARP', 'Gauss ARP',...
+sgtitle([strcat(antTypeCmt(antType), sprintf('; RMSE = %i m',s))]);
+legend('Without beam control', 'Rectangular ARP', 'Gaussian ARP',...
     'Location', 'southeast');

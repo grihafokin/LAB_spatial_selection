@@ -12,7 +12,7 @@ backLobe = 1; % suppression of ARP back lobe (logical only for URA)
 % 1 - planar or uniform rectangural antenna array (URA)
 % 2 - uniform linear antenna array (ULA)
 % 3 - uniform circular antenna array (UCA); supports BF: antPattCntrl=0,1,2
-antType = 2;
+antType = 1;
 % vector of the NB beamforming (BF) control algorithm:
 %   0 - maximum antenna radiation pattern (ARP) beam shape control
 %   1 - maximum and null antenna radiation pattern (ARP) beam shape control
@@ -41,7 +41,7 @@ for aa=1:length(antPattCntrlArr)
     % scenario selection:
     % 1- gNBs are located on the same side relative to the UE's motion 
     % 2- gNBs are located on different sides relative to the UE's motion
-    [gNB, ueNode, d, T, v] = createScenarion(1, 0:10);
+    [gNB, ueNode, d, T, v] = createScenarion(1, 0:0.1:10);
     Nd = length(d);
     Nnb = length(gNB);    % gNB number
     Nue = length(ueNode); % UE number

@@ -12,7 +12,7 @@ useAntUE = 0;   % use AA BF at the UE (antPattCntrl=0 mode only)
 %   1 - maximum and null antenna radiation pattern (ARP) beam shape control
 %   2 - adaptive antenna radiation pattern (ARP) beam shape control
 %   3 - antenna radiation pattern (ARP) beam width (BW) control
-antPattCntrl = 3;
+antPattCntrl = 0;
 % select ARP beam shape for beam width control algorithm (antPattCntrl = 3)
 % 0 - Gauss window
 % 1 - raised cosine window
@@ -43,7 +43,7 @@ NelFull = size(antElPos, 1);            % total number of AA elements
 % scenario selection:
 % 1- gNBs are located on the same side relative to the UE's motion path
 % 2- gNBs are located on different sides relative to the UE's movement path
-[gNB, ueNode, d, T, v] = createScenarion(1);
+[gNB, ueNode, d, T, v] = createScenarion(1, 10);
 Nd = length(d);
 
 Nnb = length(gNB);    % gNB number
@@ -54,8 +54,8 @@ trajArray = [ueNode.Trajectory];       % UE coordinate array [N x 3*Nue]
 gNBcoords = [gNB(:).Coords].';         % gNB coordinate array [Nnb x 3]
 
 if (anim == 1)
-    antPattScl = 7.8;   % scaling coefficient to display gNB ARP
-    antPattSclUe = 0.6; % scaling coefficient to display UE ARP
+    antPattScl = 30.0;  % scaling coefficient to display gNB ARP
+    antPattSclUe = 5.0; % scaling coefficient to display UE ARP
     fg = figure(5); fg.WindowState = 'maximized'; grid on; hold on;
     % gNB ARP display (for parameters see antPattPlot)
     gNBptrnPlot = gobjects(1, 2);
@@ -121,7 +121,7 @@ if (anim == 1)
         text(gNB(i).Coords(1), gNB(i).Coords(2), gNB(i).Coords(3)+5, ...
             sprintf('gNB_{%i}', i), 'FontSize', 16, 'Color', '#A2142F');
     end
-    xlabel('x, м'); ylabel('y, м'); axis equal;
+    xlabel('x, m'); ylabel('y, m'); axis equal;
     axis([-5, 155, -5, 65, 0, 30]); view([0, 90]);
 end
 
@@ -134,7 +134,7 @@ azAngUE = zeros(Nue, Nnb);
 elAngUE = zeros(Nue, Nnb);
 
 %% CYCLE BY THE NUMBER OF CALCULATION POINTS
-for i=1:N % cycle by number of calculation points
+for i=1:76 % cycle by number of calculation points
     % array of coordinates of all UEs for the i-th calculation point
     ueCoordsi = reshape(trajArray(i, :).', 3, Nue).';
     % introducing an error into the estimation 

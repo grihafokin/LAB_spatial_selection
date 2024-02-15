@@ -8,13 +8,13 @@ stdCoords = 10; % RMSE of UE coordinate estimates along x, y, z axes, m
 % 0 - Gauss window
 % 1 - raised cosine window
 % 2 - rectangular window
-win_type = 2;
+win_type = 0;
 % selection of antenna array type
 % 1 - planar or uniform rectangural antenna array (URA)
 % 2 - uniform linear antenna array (ULA)
 % 3 - uniform circular antenna array (UCA); supports BF: antPattCntrl=0,1,2
-antType = 2;
-Nel = 15;                          % number of AA elements in one dimension
+antType = 1;
+Nel = 20;                          % number of AA elements in one dimension
 antElPos = createAnt(antType, Nel, da); % construction of AA
 NelFull = size(antElPos, 1);            % total number of AA elements
 
@@ -111,21 +111,32 @@ yPatt = sind(alphPatt).*gNorm*(distSpaceT);
 xPattDef = cosd(alphPatt).*gDef*(distSpaceT);
 yPattDef = sind(alphPatt).*gDef*(distSpaceT);
 % constructing a color map of the probability of UE position
-[X,Y] = meshgrid(-25:25, 0:Due+15);
+[X,Y] = meshgrid(-50:50, 0:80);
 p = mvnpdf([X(:) Y(:)], ueCoord([2,1]), diag([stdCoords,stdCoords].^2));
 p = reshape(p,size(X));
 % display ARP on the UE position probability map
-figure(1); pcolor(X,Y,p),shading interp; hold on;
-plot(xPatt, yPatt, 'Color', '#D95319', 'LineWidth', 1.3);
-plot(xPattDef, yPattDef, 'Color', '#7E2F8E', 'LineWidth', 1.3);
-text(ueCoord(2), ueCoord(1)+2, 'UE', 'HorizontalAlignment', 'center')
-grid on; axis equal; axis tight; xlabel('x, m'); ylabel('y, m');
+figure(1); pcolor(X,Y,p); shading interp; hold on;
+% plot(xPatt, yPatt, 'Color', '#D95319', 'LineWidth', 1.3);
+% plot(xPattDef, yPattDef, 'Color', '#7E2F8E', 'LineWidth', 1.3);
+plot(xPatt,yPatt,'r-','LineWidth', 2.0); hold on;
+%plot(xPattDef, yPattDef, 'g-', 'LineWidth', 1.5);
+text(ueCoord(2), ueCoord(1)+2, 'UE', 'HorizontalAlignment', 'center');
+grid on; axis equal; axis tight; xlabel('x, m'); ylabel('y, m'); hold on;
+prbA = [0.1, 0.5, 0.9];
+[~, ~, ppR] = get_prob(ueCoord(2), ueCoord(1), stdCoords, prbA);
+angA = 0:360;
+for i=1:length(prbA)
+    plot(ppR(i)*cosd(angA) + ueCoord(2), ...
+        ppR(i)*sind(angA) + ueCoord(1), 'k-');
+    text(ueCoord(2), ppR(i) + ueCoord(1), num2str(prbA(i)), ...
+        'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+end
 if win_type == 0 
-    title('Gauss window ARP');
+    title('Gaussian window ARP');
 elseif win_type == 2
     title('Rectangular window ARP');
 end
-c = colorbar; c.Label.String = 'p(x,y)';
+%c = colorbar; c.Label.String = 'p(x,y)';
 % display of instantaneous received power values
 figure(2); plot(ueRxPwr.'); grid on;
 xlabel('Calculation point number'); ylabel('P, dB');

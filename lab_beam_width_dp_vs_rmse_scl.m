@@ -1,7 +1,7 @@
 % 
 clear all; close all; clc;
 stdCoordsArr = [1, 3, 5, 10];  % RMSE of UE coordinate estimates, m
-NellArr = 4:4:20;              % number of AA elements in one dimension
+NellArr = 4:1:20;              % number of AA elements in one dimension
 % selection of antenna array type
 % 1 - planar or uniform rectangural antenna array (URA)
 % 2 - uniform linear antenna array (ULA)
@@ -17,11 +17,11 @@ for ww=1:length(win_typeArr)
     win_type = win_typeArr(ww);
     switch win_type
         case 0
-            sclArr = 0.2:0.4:3; % Gauss window
+            sclArr = 0.1:0.1:3.0; % Gauss window
         case 1
-            sclArr = 0:0.1:0.9; % Raised cosine window;
+            sclArr = 0.0:0.1:0.9; % Raised cosine window;
         case 2
-            sclArr = 1:0.2:3;   % Rectangular window
+            sclArr = 0.1:0.1:3.0; % Rectangular window
     end
     c = physconst('LightSpeed');
     f = 30e9;       % carrier frequency, Hz
@@ -128,18 +128,19 @@ for ww=1:length(win_typeArr)
     [X,Y] = meshgrid(NellArr, sclArr);
     for kk=1:size(Z,2)
         subplot(2,2,kk)
-        surf(X, Y, Z{kk}.', 'FaceColor', 'interp', 'EdgeColor','none');
-        c1 = colorbar; c1.Label.String = '\DeltaP, dB';
+        if stdCoordsArr(kk)==1
+            [~,hh]=contourf(X, Y, smoothdata(Z{kk}.')); 
+        else
+            [~,hh]=contourf(X, Y, smoothdata(Z{kk}.'),'ShowText','on'); 
+        end
+        c1 = colorbar; c1.Label.String = '\DeltaP, dB'; hold on;
+        hh.LabelSpacing = 250;
         grid on; xlabel('N'); ylabel('s'); view([0, 90]); axis tight;
         title(sprintf('RMSE = %d m',stdCoordsArr(kk)));
-        legend(sprintf('RMSE = %d m',stdCoordsArr(kk)),...
-            'Location', 'southeast');
     end
     if win_type == 0 
-        legend('Gauss window ARP','Location', 'southeast');
-        sgtitle(sprintf('Gauss window ARP %s', antTypeCmt(antType)));
+        sgtitle(sprintf('Gaussian ARP; %s', antTypeCmt(antType)));
     elseif win_type == 2
-        legend('Rectangular window ARP','Location', 'southeast');
-        sgtitle(sprintf('Rectangular window ARP %s', antTypeCmt(antType)));
+        sgtitle(sprintf('Rectangular ARP; %s', antTypeCmt(antType)));
     end   
 end
